@@ -29,7 +29,7 @@ def main():
         size = input_path.stat().st_size
         print(f"Tamaño del archivo '{input_path.name}': {to_MB(size)}")
     elif input_path.is_dir():
-        print(f"Tamaños de subcarpetas en: {input_path}\n")
+        print(f"Tamaños de archivos y subcarpetas en: {input_path}\n")
         folder_sizes = []
         for item in input_path.iterdir():
             if item.is_dir():
