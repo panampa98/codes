@@ -2,3 +2,5 @@
 .env
 datasets
 databases
+data
+__pycache__
