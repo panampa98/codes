@@ -1,10 +1,11 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import messagebox
 from PIL import Image, ImageTk
 import cv2
 import mediapipe as mp
 import math
 import numpy as np
+import platform
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 import imutils
@@ -51,7 +52,22 @@ class EyeTrackerApp:
         self.canvas.get_tk_widget().grid(row=1, column=0, padx=10, pady=10)
 
         # Variables
-        self.cap = cv2.VideoCapture(1, cv2.CAP_DSHOW)
+        system_name = platform.system()
+        if system_name == 'Windows':
+            self.cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+            if not self.cap.isOpened():
+                self.cap = cv2.VideoCapture(1, cv2.CAP_DSHOW)
+        elif system_name == 'Darwin':
+            self.cap = cv2.VideoCapture(0, cv2.CAP_AVFOUNDATION)
+        else:
+            self.cap = cv2.VideoCapture(0)
+
+        if not self.cap or not self.cap.isOpened():
+            raise RuntimeError(
+                'No se pudo abrir la camara. En macOS habilita permisos para tu terminal en '
+                'System Settings > Privacy & Security > Camera y vuelve a ejecutar.'
+            )
+
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
         self.cap.set(cv2.CAP_PROP_FPS, 30)
@@ -137,5 +153,10 @@ class EyeTrackerApp:
 
 if __name__ == '__main__':
     root = ctk.CTk()
-    app = EyeTrackerApp(root)
+    try:
+        app = EyeTrackerApp(root)
+    except RuntimeError as exc:
+        messagebox.showerror('Camera Error', str(exc))
+        root.destroy()
+        raise SystemExit(1)
     root.mainloop()
