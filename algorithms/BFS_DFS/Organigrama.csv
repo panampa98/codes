@@ -1,0 +1,41 @@
+﻿Id. de empleado;Id. de administrador;Nombre;Título
+ID1;;Carlos Fernandez Rojas;Director De Tecnologia Y Datos
+ID2;ID1;Diego Ramirez Quispe;Gerente De Ingenieria De Software
+ID3;ID1;Valeria Torres Mendez;Gerente De Ciencia De Datos
+ID4;ID1;Javier Soto Paredes;Lider De Arquitectura Empresarial
+ID5;ID1;Camila Navarro Huaman;Lider De Ciberseguridad
+ID6;ID1;Mateo Silva Castillo;Gerente De Plataformas Cloud
+ID7;ID1;Daniela Vargas Salas;Gerente De Analitica Avanzada
+ID8;ID1;Andres Aguilar Pe?a;Lider De Devops Y Sre
+ID9;ID1;Paula Rojas Cardenas;Lider De Gobierno De Datos
+ID10;ID1;Sergio Luna Flores;Lider De Ingenieria De Datos
+ID11;ID1;Carla Medina Ponce;Product Manager De Banca Digital
+ID12;ID1;Renato Chavez Villanueva;Scrum Master Senior
+ID13;ID3;Isabel Romero Guerra;Arquitecto De Soluciones
+ID14;ID3;Bruno Rivas Calderon;Arquitecto De Datos
+ID15;ID4;Mariana Ortiz Salazar;Jefe De Calidad De Software
+ID16;ID3;Alonso Pacheco Ruiz;Lider De Ingenieria Backend
+ID17;ID3;Renata Herrera Ocampo;Lider De Ingenieria Frontend
+ID18;ID3;Gonzalo Campos Torres;Lider De Integraciones Y APIs
+ID19;ID3;Natalia Espinoza Rios;Lider De Observabilidad
+ID20;ID5;Luis Valdez Arias;Lider De Riesgo Tecnologico
+ID21;ID29;Fiorella Castro Morales;Cientifico De Datos Senior
+ID22;ID29;Kevin Mu?oz Benites;Cientifico De Datos
+ID23;ID29;Rosa Delgado Molina;Ingeniero De Datos Senior
+ID24;ID29;Martin Quiroga Pizarro;Ingeniero De Datos
+ID25;ID29;Adriana Cabrera Lazo;Ingeniero De Machine Learning
+ID26;ID29;Oscar Huertas Nunez;Ingeniero De MLOps
+ID27;ID29;Patricia Lozano Huaman;Analista De Datos Senior
+ID28;ID29;Hector Palacios Rojas;Analista De Datos
+ID29;ID16;Claudia Vega Soto;Analista De BI
+ID30;ID19;Julio Sandoval Peralta;Ingeniero De Software Senior
+ID31;ID19;Cecilia Cardenas Rivas;Ingeniero De Software
+ID32;ID19;Ivan Mendoza Salas;Ingeniero De QA Automatizado
+ID33;ID19;Luciana Pineda Torres;Ingeniero De QA
+ID34;ID19;Pablo Roldan Chumpitaz;Desarrollador Backend
+ID35;ID19;Gabriela Ponce Reyes;Desarrollador Frontend
+ID36;ID19;Sebastian Miranda Lira;Desarrollador Full Stack
+ID37;ID19;Andrea Rosales Soto;Analista De Ciberseguridad
+ID38;ID19;Ricardo Zamora Aguilar;Analista De Seguridad SOC
+ID39;ID19;Melissa Carrillo Paredes;Administrador De Base De Datos
+ID40;ID19;Josefina Nieto Ramos;Especialista De Soporte Aplicativo

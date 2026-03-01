@@ -1,0 +1,556 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Organigrama mixto (nivel 2 horizontal y luego vertical con spine)</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; margin: 16px; }
+    .row { display: flex; gap: 16px; align-items: flex-start; }
+    textarea { width: 560px; height: 280px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    button { padding: 8px 12px; cursor: pointer; }
+    .hint { color: #444; margin: 8px 0 12px; }
+    svg { width: 100%; height: 78vh; border: 1px solid #ddd; border-radius: 10px; background: #fff; }
+
+    .node text { dominant-baseline: middle; }
+  </style>
+</head>
+<body>
+
+<h2>Organigrama desde CSV (con nombre + titulo en 2 lineas)</h2>
+<div class="hint">
+  CSV: <b>Id. de empleado,Nombre,T&iacute;tulo,Id. de administrador</b>. Separador <b>,</b> o <b>;</b>. Se ignoran columnas adicionales. La raíz tiene <b>Id. de administrador vacío</b>.
+</div>
+
+<div class="row">
+  <div>
+    <textarea id="csvInput">Id. de empleado;Id. de administrador;Nombre;Título
+ID1;;Carlos Fernandez Rojas;Director De Tecnologia Y Datos
+ID2;ID1;Diego Ramirez Quispe;Gerente De Ingenieria De Software
+ID3;ID1;Valeria Torres Mendez;Gerente De Ciencia De Datos
+ID4;ID1;Javier Soto Paredes;Lider De Arquitectura Empresarial
+ID5;ID1;Camila Navarro Huaman;Lider De Ciberseguridad
+ID6;ID1;Mateo Silva Castillo;Gerente De Plataformas Cloud
+ID7;ID1;Daniela Vargas Salas;Gerente De Analitica Avanzada
+ID8;ID1;Andres Aguilar Pe?a;Lider De Devops Y Sre
+ID9;ID1;Paula Rojas Cardenas;Lider De Gobierno De Datos
+ID10;ID1;Sergio Luna Flores;Lider De Ingenieria De Datos
+ID11;ID1;Carla Medina Ponce;Product Manager De Banca Digital
+ID12;ID1;Renato Chavez Villanueva;Scrum Master Senior
+ID13;ID3;Isabel Romero Guerra;Arquitecto De Soluciones
+ID14;ID3;Bruno Rivas Calderon;Arquitecto De Datos
+ID15;ID4;Mariana Ortiz Salazar;Jefe De Calidad De Software
+ID16;ID3;Alonso Pacheco Ruiz;Lider De Ingenieria Backend
+ID17;ID3;Renata Herrera Ocampo;Lider De Ingenieria Frontend
+ID18;ID3;Gonzalo Campos Torres;Lider De Integraciones Y APIs
+ID19;ID3;Natalia Espinoza Rios;Lider De Observabilidad
+ID20;ID5;Luis Valdez Arias;Lider De Riesgo Tecnologico
+ID21;ID29;Fiorella Castro Morales;Cientifico De Datos Senior
+ID22;ID29;Kevin Mu?oz Benites;Cientifico De Datos
+ID23;ID29;Rosa Delgado Molina;Ingeniero De Datos Senior
+ID24;ID29;Martin Quiroga Pizarro;Ingeniero De Datos
+ID25;ID29;Adriana Cabrera Lazo;Ingeniero De Machine Learning
+ID26;ID29;Oscar Huertas Nunez;Ingeniero De MLOps
+ID27;ID29;Patricia Lozano Huaman;Analista De Datos Senior
+ID28;ID29;Hector Palacios Rojas;Analista De Datos
+ID29;ID16;Claudia Vega Soto;Analista De BI
+ID30;ID19;Julio Sandoval Peralta;Ingeniero De Software Senior
+ID31;ID19;Cecilia Cardenas Rivas;Ingeniero De Software
+ID32;ID19;Ivan Mendoza Salas;Ingeniero De QA Automatizado
+ID33;ID19;Luciana Pineda Torres;Ingeniero De QA
+ID34;ID19;Pablo Roldan Chumpitaz;Desarrollador Backend
+ID35;ID19;Gabriela Ponce Reyes;Desarrollador Frontend
+ID36;ID19;Sebastian Miranda Lira;Desarrollador Full Stack
+ID37;ID19;Andrea Rosales Soto;Analista De Ciberseguridad
+ID38;ID19;Ricardo Zamora Aguilar;Analista De Seguridad SOC
+ID39;ID19;Melissa Carrillo Paredes;Administrador De Base De Datos
+ID40;ID19;Josefina Nieto Ramos;Especialista De Soporte Aplicativo
+</textarea>
+    <div style="margin-top:10px; display:flex; gap:10px;">
+      <button id="renderBtn">Renderizar</button>
+      <button id="downloadPngBtn">Descargar PNG (sin fondo)</button>
+      <button id="downloadJpgBtn">Descargar JPEG</button>
+      <button id="downloadSvgBtn">Descargar SVG</button>
+    </div>
+  </div>
+
+  <div style="flex:1">
+    <div class="hint">
+      Corte: horizontal hasta nivel 2 (depth=1) y vertical desde depth>=2.<br/>
+      Los enlaces del bloque vertical bajan por una spine comun y entran horizontalmente al nodo.
+    </div>
+  </div>
+</div>
+
+<svg id="svg"></svg>
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script>
+  // ======= CONFIG =======
+  const HORIZONTAL_MAX_DEPTH = 3  ; // depth=1 es el segundo nivel (raiz depth=0)
+
+  const NODE_W = 236;
+  const NODE_H = 72;        // alto para permitir salto de línea en título/subtítulo
+  const ACCENT_W = 8;
+
+  const H_GAP = 50;
+  const DEPTH_GAP = 86;
+
+  const V_GAP = NODE_H + 28;
+  const STACK_OFFSET_X = 36; // primer nivel vertical mas cerca del centro del padre
+  const INDENT = 24;         // subniveles con desplazamiento horizontal ligeramente mayor
+
+  const MARGIN = {top: 24, left: 24};
+
+  // ======= CSV -> TREE =======
+  function detectDelimiter(text) {
+    const firstLine = (text || "").split(/\r?\n/).find(l => l.trim().length);
+    if (!firstLine) return ",";
+
+    function countDelimOutsideQuotes(line, delim) {
+      let count = 0;
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') {
+          if (inQuotes && line[i + 1] === '"') {
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+          continue;
+        }
+        if (!inQuotes && ch === delim) count++;
+      }
+      return count;
+    }
+
+    const semicolons = countDelimOutsideQuotes(firstLine, ";");
+    const commas = countDelimOutsideQuotes(firstLine, ",");
+    return semicolons > commas ? ";" : ",";
+  }
+
+  function getField(row, candidates) {
+    const keys = Object.keys(row);
+    const normalize = s => String(s ?? "").replace(/^\uFEFF/, "").trim().toLowerCase();
+
+    for (const candidate of candidates) {
+      const target = normalize(candidate);
+      const key = keys.find(k => normalize(k) === target);
+      if (key != null) return String(row[key] ?? "").trim();
+    }
+    return "";
+  }
+
+  function parseCSV(text) {
+    const clean = String(text ?? "").replace(/^\uFEFF/, "").trim();
+    const delimiter = detectDelimiter(clean);
+    const parser = delimiter === ";" ? d3.dsvFormat(";").parse : d3.csvParse;
+    const rows = parser(clean);
+
+    const norm = rows.map(r => ({
+      id: getField(r, ["Id. de empleado", "Id de empleado", "id"]),
+      name: getField(r, ["Nombre", "name"]),
+      label: getField(r, ["Título", "T\u00edtulo", "TÃ­tulo", "Titulo", "label"]),
+      parent: getField(r, ["Id. de administrador", "Id de administrador", "parent"]),
+      role: getField(r, ["Tipo de rol", "role"]),
+    })).filter(r => r.id);
+
+    const ids = new Set();
+    for (const r of norm) {
+      if (ids.has(r.id)) throw new Error(`ID duplicado: ${r.id}`);
+      ids.add(r.id);
+    }
+    return norm;
+  }
+
+  function buildHierarchy(rows) {
+    const byId = new Map(rows.map(r => [r.id, {...r, children: []}]));
+    let root = null;
+
+    for (const r of byId.values()) {
+      if (!r.parent) {
+        if (root) throw new Error("Hay mas de una raiz (mas de un parent vacio).");
+        root = r;
+      } else {
+        const p = byId.get(r.parent);
+        if (p) p.children.push(r);
+      }
+    }
+    if (!root) throw new Error("No se encontro raiz (fila con parent vacio).");
+    return d3.hierarchy(root, d => d.children);
+  }
+
+  // ======= LAYOUT MIXTO + SPINE =======
+  function layoutMixed(root) {
+    const tree = d3.tree().nodeSize([NODE_W + H_GAP, NODE_H + DEPTH_GAP]);
+    const horizontalRoot = root.copy();
+    horizontalRoot.each(n => {
+      if (n.depth >= HORIZONTAL_MAX_DEPTH) n.children = null;
+    });
+    tree(horizontalRoot);
+
+    const topPosById = new Map(
+      horizontalRoot.descendants().map(n => [n.data.id, {x: n.x, y: n.y}])
+    );
+
+    root.descendants().forEach(n => {
+      const pos = topPosById.get(n.data.id);
+      if (pos) {
+        n.x = pos.x;
+        n.y = pos.y;
+      }
+      n._isVertical = false;
+      n._spineX = null;
+    });
+
+    root._spineSegments = [];
+
+    const anchors = root.descendants().filter(n => n.depth === HORIZONTAL_MAX_DEPTH);
+
+    for (const a of anchors) {
+      const anchorChildren = a.children || [];
+      if (!anchorChildren.length) continue;
+
+      let cursorY = a.y + DEPTH_GAP;
+
+      // Mantiene orden: procesa cada hijo directo completo (con subniveles) antes del siguiente.
+      for (const child of anchorChildren) {
+        const subtreeNodes = child.descendants();
+        const byDepth = d3.group(subtreeNodes, n => n.depth);
+        const depths = Array.from(byDepth.keys()).sort((x, y) => x - y);
+
+        for (const depth of depths) {
+          const levelNodes = byDepth.get(depth) || [];
+          if (!levelNodes.length) continue;
+
+          const levelOffset = depth - a.depth - 1;
+          const spineX = a.x + NODE_W / 2 + levelOffset * INDENT;
+          const nodeX = spineX + STACK_OFFSET_X;
+          const startMidY = cursorY + NODE_H / 2;
+
+          for (const n of levelNodes) {
+            n._isVertical = true;
+            n._spineX = spineX;
+            n.x = nodeX;
+            n.y = cursorY;
+            cursorY += V_GAP;
+          }
+
+          const endMidY = cursorY - V_GAP + NODE_H / 2;
+          if (levelNodes.length > 1) {
+            root._spineSegments.push({x: spineX, y0: startMidY, y1: endMidY});
+          }
+
+          cursorY += 8;
+        }
+
+        cursorY += 14;
+      }
+    }
+    return root;
+  }
+
+  // ======= RENDER =======
+  function render(root) {
+    const svg = d3.select("#svg");
+    svg.selectAll("*").remove();
+
+    const nodes = root.descendants();
+
+    const minX = d3.min(nodes, d => d.x);
+    const maxX = d3.max(nodes, d => d.x);
+    const minY = d3.min(nodes, d => d.y);
+    const maxY = d3.max(nodes, d => d.y);
+
+    const width = (maxX - minX) + NODE_W + MARGIN.left * 2 + 80;
+    const height = (maxY - minY) + NODE_H + MARGIN.top * 2 + 80;
+
+    svg.attr("viewBox", `0 0 ${width} ${height}`);
+
+    const g = svg.append("g")
+      .attr("transform", `translate(${MARGIN.left - minX},${MARGIN.top - minY})`);
+
+    // SPINES
+    const spineSegments = root._spineSegments || [];
+    g.selectAll(".spine")
+      .data(spineSegments)
+      .enter()
+      .append("line")
+      .attr("class", "spine")
+      .attr("stroke", "#333")
+      .attr("stroke-width", 1.2)
+      .attr("x1", d => d.x)
+      .attr("x2", d => d.x)
+      .attr("y1", d => d.y0)
+      .attr("y2", d => d.y1);
+
+    // LINKS
+    const links = root.links();
+
+    function elbowNormal(d) {
+      const sx = d.source.x + NODE_W / 2;
+      const sy = d.source.y + NODE_H;
+      const tx = d.target.x + NODE_W / 2;
+      const ty = d.target.y;
+
+      const midY = sy + (ty - sy) * 0.35;
+      return `M ${sx} ${sy}
+              L ${sx} ${midY}
+              L ${tx} ${midY}
+              L ${tx} ${ty}`;
+    }
+
+    function elbowSpine(d) {
+      const sx = d.source.x + NODE_W / 2;
+      const sy = d.source.y + NODE_H;
+
+      const spineX = d.target._spineX;
+      const tyMid = d.target.y + NODE_H / 2;
+      const txLeft = d.target.x;
+
+      const midY = sy + 14;
+      return `M ${sx} ${sy}
+              L ${sx} ${midY}
+              L ${spineX} ${midY}
+              L ${spineX} ${tyMid}
+              L ${txLeft} ${tyMid}`;
+    }
+
+    g.selectAll(".link")
+      .data(links)
+      .enter()
+      .append("path")
+      .attr("class", "link")
+      .attr("fill", "none")
+      .attr("stroke", "#333")
+      .attr("stroke-width", 1.2)
+      .attr("d", d => d.target._isVertical ? elbowSpine(d) : elbowNormal(d));
+
+    // NODES
+    const node = g.selectAll(".node")
+      .data(nodes)
+      .enter()
+      .append("g")
+      .attr("class", "node")
+      .attr("transform", d => `translate(${d.x},${d.y})`);
+
+    function leftAccentPath(width, height, radius) {
+      const r = Math.max(0, Math.min(radius, width, height / 2));
+      return [
+        `M ${width} 0`,
+        `H ${r}`,
+        `Q 0 0 0 ${r}`,
+        `V ${height - r}`,
+        `Q 0 ${height} ${r} ${height}`,
+        `H ${width}`,
+        "Z"
+      ].join(" ");
+    }
+
+    node.append("rect")
+      .attr("fill", "#ececec")
+      .attr("stroke", "#d4d6da")
+      .attr("stroke-width", 1)
+      .attr("rx", 8)
+      .attr("ry", 8)
+      .attr("width", NODE_W)
+      .attr("height", NODE_H);
+
+    node.append("path")
+      .attr("fill", "#0d3a6e")
+      .attr("d", leftAccentPath(ACCENT_W, NODE_H, 8));
+
+    function wrapText(text, maxCharsPerLine, maxLines) {
+      const value = String(text ?? "").trim().replace(/\s+/g, " ");
+      if (!value) return [];
+
+      const words = value.split(" ");
+      const lines = [];
+      let current = "";
+      let i = 0;
+
+      while (i < words.length && lines.length < maxLines) {
+        const word = words[i];
+        const candidate = current ? `${current} ${word}` : word;
+
+        if (candidate.length <= maxCharsPerLine) {
+          current = candidate;
+          i++;
+          continue;
+        }
+
+        if (current) {
+          lines.push(current);
+          current = "";
+        } else {
+          lines.push(word.slice(0, maxCharsPerLine));
+          i++;
+        }
+      }
+
+      if (current && lines.length < maxLines) lines.push(current);
+
+      if (i < words.length && lines.length) {
+        const last = lines.length - 1;
+        const room = Math.max(1, maxCharsPerLine - 3);
+        lines[last] = (lines[last].length > room ? lines[last].slice(0, room) : lines[last]) + "...";
+      }
+
+      return lines;
+    }
+
+    function drawCenteredLines(group, lines, centerY, fontSize, fontWeight) {
+      if (!lines.length) return;
+      const lineStep = fontSize + 2;
+      const startY = centerY - ((lines.length - 1) * lineStep) / 2;
+
+      const text = group.append("text")
+        .attr("font-family", "system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif")
+        .attr("fill", "#1f2937")
+        .attr("text-anchor", "middle")
+        .attr("dominant-baseline", "middle")
+        .attr("font-size", fontSize)
+        .attr("font-weight", fontWeight);
+
+      lines.forEach((line, idx) => {
+        text.append("tspan")
+          .attr("x", NODE_W / 2)
+          .attr("y", startY + idx * lineStep)
+          .text(line);
+      });
+    }
+
+    node.each(function(d) {
+      const gNode = d3.select(this);
+      const nameLines = wrapText(d.data.name || d.data.id, 24, 2);
+      const subtitle = [d.data.label, d.data.role].filter(Boolean).join(" - ");
+      const subtitleLines = wrapText(subtitle, 28, 2);
+
+      drawCenteredLines(gNode, nameLines, NODE_H * 0.34, 12, 700);
+      drawCenteredLines(gNode, subtitleLines, NODE_H * 0.72, 9, 400);
+    });
+    node.append("title")
+      .text(d => {
+        const r = d.data;
+        return `ID: ${r.id}\nNombre: ${r.name}\nTitulo: ${r.label}\nRol: ${r.role}\nParent: ${r.parent || "-"}`;
+      });
+  }
+
+  function buildAndRender() {
+    try {
+      const rows = parseCSV(document.getElementById("csvInput").value);
+      const root = buildHierarchy(rows);
+      layoutMixed(root);
+      render(root);
+    } catch (e) {
+      alert(e.message);
+      console.error(e);
+    }
+  }
+
+  document.getElementById("renderBtn").addEventListener("click", buildAndRender);
+
+  function makeStandaloneSvg() {
+    const svgEl = document.getElementById("svg");
+    const clone = svgEl.cloneNode(true);
+    clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    clone.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
+    clone.setAttribute("version", "1.1");
+    clone.style.background = "transparent";
+
+    const viewBox = svgEl.viewBox.baseVal;
+    const width = Math.max(1, Math.ceil(viewBox && viewBox.width ? viewBox.width : svgEl.clientWidth || 1200));
+    const height = Math.max(1, Math.ceil(viewBox && viewBox.height ? viewBox.height : svgEl.clientHeight || 800));
+
+    clone.setAttribute("width", String(width));
+    clone.setAttribute("height", String(height));
+    clone.setAttribute("viewBox", `0 0 ${width} ${height}`);
+
+    return {
+      width,
+      height,
+      xml: new XMLSerializer().serializeToString(clone)
+    };
+  }
+
+  function exportSvgToRaster({format = "png", quality = 0.92, background = null, filename}) {
+    const {width, height, xml} = makeStandaloneSvg();
+    const svgBlob = new Blob([xml], {type: "image/svg+xml;charset=utf-8"});
+    const url = URL.createObjectURL(svgBlob);
+    const img = new Image();
+
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        URL.revokeObjectURL(url);
+        alert("No fue posible crear el contexto de imagen.");
+        return;
+      }
+
+      if (background) {
+        ctx.fillStyle = background;
+        ctx.fillRect(0, 0, width, height);
+      }
+
+      ctx.drawImage(img, 0, 0, width, height);
+
+      const mime = format === "jpeg" ? "image/jpeg" : "image/png";
+      const outUrl = canvas.toDataURL(mime, quality);
+      const a = document.createElement("a");
+      a.href = outUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      alert("No fue posible exportar la imagen.");
+    };
+
+    img.src = url;
+  }
+
+  function downloadSvg() {
+    const {xml} = makeStandaloneSvg();
+    const blob = new Blob([xml], {type: "image/svg+xml;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "organigrama_spine_nombre_titulo.svg";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  document.getElementById("downloadPngBtn").addEventListener("click", () => {
+    exportSvgToRaster({
+      format: "png",
+      background: null,
+      filename: "organigrama_spine_nombre_titulo.png"
+    });
+  });
+
+  document.getElementById("downloadJpgBtn").addEventListener("click", () => {
+    exportSvgToRaster({
+      format: "jpeg",
+      quality: 0.95,
+      background: "#ffffff",
+      filename: "organigrama_spine_nombre_titulo.jpg"
+    });
+  });
+
+  document.getElementById("downloadSvgBtn").addEventListener("click", downloadSvg);
+
+  buildAndRender();
+</script>
+</body>
+</html>
