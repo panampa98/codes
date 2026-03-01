@@ -31,11 +31,16 @@ ID29;ID16;Claudia Vega Soto;Analista De BI
 ID30;ID19;Julio Sandoval Peralta;Ingeniero De Software Senior
 ID31;ID19;Cecilia Cardenas Rivas;Ingeniero De Software
 ID32;ID19;Ivan Mendoza Salas;Ingeniero De QA Automatizado
-ID33;ID19;Luciana Pineda Torres;Ingeniero De QA
-ID34;ID19;Pablo Roldan Chumpitaz;Desarrollador Backend
-ID35;ID19;Gabriela Ponce Reyes;Desarrollador Frontend
-ID36;ID19;Sebastian Miranda Lira;Desarrollador Full Stack
-ID37;ID19;Andrea Rosales Soto;Analista De Ciberseguridad
-ID38;ID19;Ricardo Zamora Aguilar;Analista De Seguridad SOC
-ID39;ID19;Melissa Carrillo Paredes;Administrador De Base De Datos
-ID40;ID19;Josefina Nieto Ramos;Especialista De Soporte Aplicativo
+ID33;ID30;Luciana Pineda Torres;Ingeniero De QA
+ID36;ID33;Sebastian Miranda Lira;Desarrollador Full Stack
+ID37;ID33;Andrea Rosales Soto;Analista De Ciberseguridad
+ID38;ID31;Ricardo Zamora Aguilar;Analista De Seguridad SOC
+ID39;ID31;Melissa Carrillo Paredes;Administrador De Base De Datos
+ID40;ID32;Josefina Nieto Ramos;Especialista De Soporte Aplicativo
+ID41;ID10;Mariana Paredes Ruiz;Lider De Calidad De Datos
+ID42;ID10;Luis Benavides Soto;Lider De Plataformas Analiticas
+ID43;ID41;Paola Mendoza Castro;Analista De Datos Jr.
+ID44;ID41;Ruben Salazar Ponce;Ingeniero De Datos Jr.
+ID45;ID41;Tania Espinoza Rios;Desarrollador De ETL
+ID46;ID7;Bruno Aguirre Silva;Analista De Modelos Predictivos
+ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.
