@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Organigrama mixto (nivel 2 horizontal y luego vertical con spine)</title>
+  <title>Generador de organigrama</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
@@ -84,6 +84,57 @@
       font-weight: 700;
       color: #0b3453;
       letter-spacing: 0.01em;
+    }
+
+    .panel-head-toggle {
+      margin-bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 6px;
+      cursor: pointer;
+      user-select: none;
+      list-style: none;
+    }
+
+    .panel-head-toggle::-webkit-details-marker {
+      display: none;
+    }
+
+    .panel-head-toggle::after {
+      content: "▾";
+      font-size: 13px;
+      color: #6b7f95;
+      transition: transform .18s ease;
+    }
+
+    .panel-head-left {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-right: auto;
+    }
+
+    .panel-head-actions {
+      display: none;
+    }
+
+    .panel-collapsible:not([open]) .panel-head-actions {
+      display: inline-flex;
+    }
+
+    .header-action-btn {
+      padding: 6px 10px;
+      font-size: 12px;
+      box-shadow: 0 1px 4px rgba(70, 119, 175, 0.14);
+    }
+
+    .panel-collapsible:not([open]) .panel-head-toggle::after {
+      transform: rotate(-90deg);
+    }
+
+    .panel-collapsible > .control-stack {
+      margin-top: 12px;
     }
 
     .panel-subhead {
@@ -463,27 +514,14 @@
     <div class="panel-head">Editor de Datos</div>
     <textarea id="csvInput">Id. de empleado;Id. de administrador;Nombre;Título
 ID1;;Carlos Fernandez Rojas;Director De Tecnologia Y Datos
-ID2;ID1;Diego Ramirez Quispe;Gerente De Ingenieria De Software
 ID3;ID1;Valeria Torres Mendez;Gerente De Ciencia De Datos
-ID4;ID1;Javier Soto Paredes;Lider De Arquitectura Empresarial
-ID5;ID1;Camila Navarro Huaman;Lider De Ciberseguridad
-ID6;ID1;Mateo Silva Castillo;Gerente De Plataformas Cloud
-ID7;ID1;Daniela Vargas Salas;Gerente De Analitica Avanzada
-ID8;ID1;Andres Aguilar Pe?a;Lider De Devops Y Sre
-ID9;ID1;Paula Rojas Cardenas;Lider De Gobierno De Datos
 ID10;ID1;Sergio Luna Flores;Lider De Ingenieria De Datos
-ID11;ID1;Carla Medina Ponce;Product Manager De Banca Digital
-ID12;ID1;Renato Chavez Villanueva;Scrum Master Senior
-ID13;ID3;Isabel Romero Guerra;Arquitecto De Soluciones
-ID14;ID3;Bruno Rivas Calderon;Arquitecto De Datos
-ID15;ID4;Mariana Ortiz Salazar;Jefe De Calidad De Software
 ID16;ID3;Alonso Pacheco Ruiz;Lider De Ingenieria Backend
 ID17;ID3;Renata Herrera Ocampo;Lider De Ingenieria Frontend
 ID18;ID3;Gonzalo Campos Torres;Lider De Integraciones Y APIs
 ID19;ID3;Natalia Espinoza Rios;Lider De Observabilidad
-ID20;ID5;Luis Valdez Arias;Lider De Riesgo Tecnologico
 ID21;ID29;Fiorella Castro Morales;Cientifico De Datos Senior
-ID22;ID29;Kevin Mu?oz Benites;Cientifico De Datos
+ID22;ID29;Kevin Muñoz Benites;Cientifico De Datos
 ID23;ID29;Rosa Delgado Molina;Ingeniero De Datos Senior
 ID24;ID29;Martin Quiroga Pizarro;Ingeniero De Datos
 ID25;ID29;Adriana Cabrera Lazo;Ingeniero De Machine Learning
@@ -505,7 +543,6 @@ ID42;ID10;Luis Benavides Soto;Lider De Plataformas Analiticas
 ID43;ID41;Paola Mendoza Castro;Analista De Datos Jr.
 ID44;ID41;Ruben Salazar Ponce;Ingeniero De Datos Jr.
 ID45;ID41;Tania Espinoza Rios;Desarrollador De ETL
-ID46;ID7;Bruno Aguirre Silva;Analista De Modelos Predictivos
 ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
     <div class="action-bar">
       <div class="btn-group">
@@ -520,8 +557,13 @@ ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
     </div>
   </div>
 
-  <div class="panel">
-    <div class="panel-head">Parámetros</div>
+  <details class="panel panel-collapsible" open>
+    <summary class="panel-head panel-head-toggle">
+      <span class="panel-head-left">Parámetros</span>
+      <span class="panel-head-actions">
+        <button id="animateQuickBtn" class="header-action-btn" type="button">Animar</button>
+      </span>
+    </summary>
     <div class="control-stack">
       <div class="control-card">
         <div class="panel-subhead">Recorrido</div>
@@ -591,7 +633,7 @@ ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
         </div>
       </div>
     </div>
-  </div>
+  </details>
 </div>
 
 <svg id="svg"></svg>
@@ -1073,6 +1115,11 @@ ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
   document.getElementById("renderBtn").addEventListener("click", buildAndRender);
   document.getElementById("resetViewBtn").addEventListener("click", () => resetView());
   document.getElementById("animateBtn").addEventListener("click", () => animateTraversal());
+  document.getElementById("animateQuickBtn").addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    animateTraversal();
+  });
   document.getElementById("stopBtn").addEventListener("click", () => stopAnimation());
   document.getElementById("applyDepthBtn").addEventListener("click", () => {
     const val = Number(document.getElementById("depthInput").value);
@@ -1180,7 +1227,7 @@ ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "organigrama_spine_nombre_titulo.svg";
+    a.download = "organigrama_generado.svg";
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -1191,7 +1238,7 @@ ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
     exportSvgToRaster({
       format: "png",
       background: null,
-      filename: "organigrama_spine_nombre_titulo.png"
+      filename: "organigrama_generado.png"
     });
   });
 
@@ -1200,7 +1247,7 @@ ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
       format: "jpeg",
       quality: 0.95,
       background: "#ffffff",
-      filename: "organigrama_spine_nombre_titulo.jpg"
+      filename: "organigrama_generado.jpg"
     });
   });
 
