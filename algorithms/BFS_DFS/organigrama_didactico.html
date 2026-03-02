@@ -99,6 +99,11 @@ ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
   </div>
 
   <div style="flex:1">
+    <div class="hint" style="font-size:12px; margin-bottom:6px;">
+      Profundidad BFS (niveles 0..N):
+      <input id="depthInput" type="number" min="0" max="10" step="1" value="3" style="width:70px;">
+      <button id="applyDepthBtn">Aplicar</button>
+    </div>
     <div class="hint">
       Corte: horizontal hasta nivel 2 (depth=1) y vertical desde depth>=2.<br/>
       Los enlaces del bloque vertical bajan por una spine comun y entran horizontalmente al nodo.
@@ -114,7 +119,7 @@ ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 <script>
   // ======= CONFIG =======
-  const HORIZONTAL_MAX_DEPTH = 3; // BFS incluye hasta depth=3 (raiz depth=0)
+  let HORIZONTAL_MAX_DEPTH = 3; // BFS incluye hasta depth=3 (raiz depth=0)
 
   const NODE_W = 236;
   const NODE_H = 72;        // alto para permitir salto de línea en título/subtítulo
@@ -210,6 +215,12 @@ ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
 
   // ======= LAYOUT MIXTO + SPINE =======
   function layoutMixed(root) {
+    function collectPreorder(node, out = []) {
+      out.push(node);
+      for (const c of (node.children || [])) collectPreorder(c, out);
+      return out;
+    }
+
     const tree = d3.tree().nodeSize([NODE_W + H_GAP, NODE_H + DEPTH_GAP]);
     const horizontalRoot = root.copy();
     horizontalRoot.each(n => {
@@ -241,37 +252,34 @@ ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
 
       let cursorY = a.y + DEPTH_GAP;
 
-      // Mantiene orden: procesa cada hijo directo completo (con subniveles) antes del siguiente.
+      // Mantiene orden DFS real del subarbol para preservar padre-hijo en vertical.
       for (const child of anchorChildren) {
-        const subtreeNodes = child.descendants();
-        const byDepth = d3.group(subtreeNodes, n => n.depth);
-        const depths = Array.from(byDepth.keys()).sort((x, y) => x - y);
+        const subtreeNodes = collectPreorder(child);
 
-        for (const depth of depths) {
-          const levelNodes = byDepth.get(depth) || [];
-          if (!levelNodes.length) continue;
-
-          const levelOffset = depth - a.depth - 1;
+        for (const n of subtreeNodes) {
+          const levelOffset = n.depth - a.depth - 1;
           const spineX = a.x + NODE_W / 2 + levelOffset * INDENT;
           const nodeX = spineX + STACK_OFFSET_X;
-          const startMidY = cursorY + NODE_H / 2;
 
-          for (const n of levelNodes) {
-            n._isVertical = true;
-            n._spineX = spineX;
-            n.x = nodeX;
-            n.y = cursorY;
-            cursorY += V_GAP;
-          }
-
-          const endMidY = cursorY - V_GAP + NODE_H / 2;
-          if (levelNodes.length > 1) {
-            root._spineSegments.push({x: spineX, y0: startMidY, y1: endMidY});
-          }
-
-          cursorY += 8;
+          n._isVertical = true;
+          n._spineX = spineX;
+          n.x = nodeX;
+          n.y = cursorY;
+          cursorY += V_GAP;
         }
 
+        // Dibuja espinas solo entre hermanos con el mismo padre (evita unir ramas distintas).
+        for (const p of subtreeNodes) {
+          const kids = (p.children || []).filter(k => k._isVertical);
+          if (kids.length <= 1) continue;
+          const first = kids[0];
+          const last = kids[kids.length - 1];
+          root._spineSegments.push({
+            x: first._spineX,
+            y0: first.y + NODE_H / 2,
+            y1: last.y + NODE_H / 2
+          });
+        }
         cursorY += 14;
       }
     }
@@ -482,6 +490,13 @@ ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
   document.getElementById("renderBtn").addEventListener("click", buildAndRender);
   document.getElementById("animateBtn").addEventListener("click", () => animateTraversal());
   document.getElementById("stopBtn").addEventListener("click", () => stopAnimation());
+  document.getElementById("applyDepthBtn").addEventListener("click", () => {
+    const val = Number(document.getElementById("depthInput").value);
+    if (Number.isFinite(val)) {
+      HORIZONTAL_MAX_DEPTH = Math.max(0, Math.floor(val));
+      buildAndRender();
+    }
+  });
 
   function makeStandaloneSvg() {
     const svgEl = document.getElementById("svg");
