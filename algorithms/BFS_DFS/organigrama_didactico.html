@@ -15,12 +15,16 @@
       --ink-strong: #0f172a;
       --ink-soft: #475569;
       --line-soft: #dbe3ef;
-      --accent-main: #0a7ea4;
-      --accent-main-2: #1e90b8;
+      --accent-main: #4677af;
+      --accent-main-2: #5f8fc7;
       --accent-warm: #ef8354;
       --shadow-soft: 0 16px 30px rgba(15, 23, 42, 0.08);
       --radius-md: 14px;
       --radius-lg: 18px;
+      --node-fill: #fafafa;
+      --node-stroke: #d4d6da;
+      --node-accent: #4677af;
+      --node-text: #1f2937;
     }
 
     * { box-sizing: border-box; }
@@ -137,20 +141,20 @@
       font-weight: 700;
       color: #ffffff;
       background: linear-gradient(135deg, var(--accent-main), var(--accent-main-2));
-      box-shadow: 0 2px 6px rgba(10, 126, 164, 0.14);
+      box-shadow: 0 2px 6px rgba(70, 119, 175, 0.16);
       cursor: pointer;
       transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
     }
 
     button:hover {
       transform: translateY(-1px);
-      box-shadow: 0 4px 10px rgba(10, 126, 164, 0.18);
+      box-shadow: 0 4px 10px rgba(70, 119, 175, 0.22);
       filter: saturate(1.06);
     }
 
     button:active {
       transform: translateY(0);
-      box-shadow: 0 1px 4px rgba(10, 126, 164, 0.12);
+      box-shadow: 0 1px 4px rgba(70, 119, 175, 0.15);
     }
 
     #stopBtn {
@@ -159,8 +163,8 @@
     }
 
     #applyDepthBtn {
-      background: linear-gradient(135deg, #3556d8, #4f75ff);
-      box-shadow: 0 2px 6px rgba(53, 86, 216, 0.14);
+      background: linear-gradient(135deg, var(--accent-main), var(--accent-main-2));
+      box-shadow: 0 2px 6px rgba(70, 119, 175, 0.16);
     }
 
     .control-stack {
@@ -205,6 +209,128 @@
       padding: 7px 10px;
     }
 
+    .card-style-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      gap: 10px;
+      align-items: end;
+    }
+
+    .color-control {
+      display: grid;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ink-soft);
+    }
+
+    .color-control input[type="color"] {
+      width: 100%;
+      height: 34px;
+      padding: 2px;
+      border: 1px solid #c8d5e2;
+      border-radius: 8px;
+      background: #ffffff;
+      cursor: pointer;
+    }
+
+    .color-actions {
+      margin-top: 10px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .collapsible-card {
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .collapsible-summary {
+      margin: 0;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      list-style: none;
+    }
+
+    .collapsible-summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .collapsible-summary::after {
+      content: "▾";
+      font-size: 13px;
+      color: #6b7f95;
+      transition: transform .18s ease;
+    }
+
+    .collapsible-card[open] .collapsible-summary::after {
+      transform: rotate(180deg);
+    }
+
+    .collapsible-content {
+      padding: 0 12px 12px;
+      border-top: 1px solid #d9e5f0;
+    }
+
+    .toggle-row {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ink-soft);
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+      flex: 0 0 44px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      inset: 0;
+      border-radius: 999px;
+      background: #cfd8e3;
+      transition: background-color .18s ease;
+      cursor: pointer;
+    }
+
+    .slider::before {
+      content: "";
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      left: 3px;
+      top: 3px;
+      border-radius: 50%;
+      background: #ffffff;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.25);
+      transition: transform .18s ease;
+    }
+
+    .switch input:checked + .slider {
+      background: var(--accent-main-2);
+    }
+
+    .switch input:checked + .slider::before {
+      transform: translateX(20px);
+    }
+
     .anim-control-row {
       display: flex;
       flex-wrap: nowrap;
@@ -214,9 +340,9 @@
       padding-bottom: 2px;
     }
 
-    .anim-control-row .panel-subhead {
-      margin: 0 6px 0 0;
-      white-space: nowrap;
+    .anim-control-card {
+      display: grid;
+      gap: 10px;
     }
 
     .anim-control-row .speed-control {
@@ -235,19 +361,9 @@
       font-weight: 700;
     }
 
-    #animStatus {
-      margin-top: 0;
-      background: #f3f7fd;
-      border: 1px solid #d8e2ef;
-      border-radius: 11px;
-      padding: 11px 12px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .status-grid {
+    .anim-legend-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: minmax(0, 1.45fr) minmax(180px, 0.55fr);
       gap: 12px;
     }
 
@@ -282,7 +398,7 @@
 
     .legend-chip.dfs {
       background: #e8fff1;
-      border-color: #15803d;
+      border-color: #3bc484;
     }
 
     svg {
@@ -303,23 +419,33 @@
       box-shadow: var(--shadow-soft);
     }
 
+    svg.zoomable {
+      cursor: grab;
+      touch-action: none;
+    }
+
+    svg.zoomable:active {
+      cursor: grabbing;
+    }
+
     .node text { dominant-baseline: middle; }
     .node.bfs rect { fill: #e6f1ff; stroke: #1d4ed8; }
     .node.bfs path { fill: #1d4ed8; }
     .link.bfs { stroke: #1d4ed8; stroke-width: 2.2; }
     .spine.bfs { stroke: #1d4ed8; stroke-width: 2.2; }
 
-    .node.dfs rect { fill: #e8fff1; stroke: #15803d; }
-    .node.dfs path { fill: #15803d; }
-    .link.dfs { stroke: #15803d; stroke-width: 2.2; }
-    .spine.dfs { stroke: #15803d; stroke-width: 2.2; }
+    .node.dfs rect { fill: #e8fff1; stroke: #3bc484; }
+    .node.dfs path { fill: #3bc484; }
+    .link.dfs { stroke: #3bc484; stroke-width: 2.2; }
+    .spine.dfs { stroke: #3bc484; stroke-width: 2.2; }
 
     @media (max-width: 1180px) {
       .row { grid-template-columns: 1fr; }
       textarea { height: 210px; }
       svg { height: 70vh; }
       .anim-control-row { gap: 8px; }
-      .status-grid { grid-template-columns: 1fr; }
+      .anim-legend-grid { grid-template-columns: 1fr; }
+      .card-style-grid { grid-template-columns: 1fr 1fr; }
     }
   </style>
 </head>
@@ -384,6 +510,7 @@ ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
     <div class="action-bar">
       <div class="btn-group">
         <button id="renderBtn">Renderizar</button>
+        <button id="resetViewBtn" type="button">Reset vista</button>
       </div>
       <div class="btn-group">
         <button id="downloadPngBtn">Descargar PNG (sin fondo)</button>
@@ -400,26 +527,53 @@ ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
         <div class="panel-subhead">Recorrido</div>
         <div class="depth-control">
           Profundidad BFS (niveles 0..N):
-          <input id="depthInput" type="number" min="0" max="10" step="1" value="3">
+          <input id="depthInput" type="number" min="0" max="10" step="1" value="2">
           <button id="applyDepthBtn">Aplicar</button>
         </div>
       </div>
-      <div class="control-card">
-        <div class="anim-control-row">
-          <div class="panel-subhead">Animación</div>
-          <button id="animateBtn">Animar BFS+DFS</button>
-          <button id="stopBtn">Detener</button>
-          <label class="speed-control">
-            Velocidad (ms)
-            <input id="speedInput" type="number" min="100" max="4000" step="100" value="300">
-          </label>
+      <details class="control-card collapsible-card">
+        <summary class="panel-subhead collapsible-summary">Estilo Cards</summary>
+        <div class="collapsible-content">
+          <div class="card-style-grid">
+            <label class="color-control">
+              Fondo
+              <input id="cardFillInput" type="color" value="#fafafa">
+            </label>
+            <label class="color-control">
+              Borde
+              <input id="cardStrokeInput" type="color" value="#d4d6da">
+            </label>
+            <label class="color-control">
+              Acento
+              <input id="cardAccentInput" type="color" value="#4677af">
+            </label>
+            <label class="color-control">
+              Texto
+              <input id="cardTextInput" type="color" value="#1f2937">
+            </label>
+          </div>
+          <div class="toggle-row">
+            Mostrar acento lateral
+            <label class="switch" for="cardAccentToggleInput">
+              <input id="cardAccentToggleInput" type="checkbox" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="color-actions">
+            <button id="resetCardColorsBtn" type="button">Restablecer</button>
+          </div>
         </div>
-      </div>
-      <div class="status-grid">
-        <div class="control-card">
-          <div class="panel-subhead">Estado</div>
-          <div id="animStatus" class="hint">
-            Estado: listo
+      </details>
+      <div class="anim-legend-grid">
+        <div class="control-card anim-control-card">
+          <div class="panel-subhead">Animación</div>
+          <div class="anim-control-row">
+            <button id="animateBtn">Animar BFS+DFS</button>
+            <button id="stopBtn">Detener</button>
+            <label class="speed-control">
+              Velocidad (ms)
+              <input id="speedInput" type="number" min="100" max="4000" step="100" value="300">
+            </label>
           </div>
         </div>
         <div class="control-card">
@@ -446,7 +600,16 @@ ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 <script>
   // ======= CONFIG =======
-  let HORIZONTAL_MAX_DEPTH = 3; // BFS incluye hasta depth=3 (raiz depth=0)
+  let HORIZONTAL_MAX_DEPTH = 2; // BFS incluye hasta depth=2 (raiz depth=0)
+  let CARD_ACCENT_ENABLED = true;
+  let CURRENT_ZOOM_TRANSFORM = d3.zoomIdentity;
+  let CURRENT_ZOOM_BEHAVIOR = null;
+  const DEFAULT_CARD_THEME = {
+    fill: "#fafafa",
+    stroke: "#d4d6da",
+    accent: "#4677af",
+    text: "#1f2937"
+  };
 
   const NODE_W = 236;
   const NODE_H = 72;        // alto para permitir salto de línea en título/subtítulo
@@ -458,8 +621,73 @@ ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
   const V_GAP = NODE_H + 28;
   const STACK_OFFSET_X = 36; // primer nivel vertical mas cerca del centro del padre
   const INDENT = 24;         // subniveles con desplazamiento horizontal ligeramente mayor
+  const ZOOM_EXTENT = [0.3, 4];
 
   const MARGIN = {top: 24, left: 24};
+
+  function isHexColor(value) {
+    return /^#[0-9a-fA-F]{6}$/.test(String(value || "").trim());
+  }
+
+  function applyCardTheme({fill, stroke, accent, text}) {
+    const rootStyle = document.documentElement.style;
+    if (isHexColor(fill)) rootStyle.setProperty("--node-fill", fill);
+    if (isHexColor(stroke)) rootStyle.setProperty("--node-stroke", stroke);
+    if (isHexColor(accent)) rootStyle.setProperty("--node-accent", accent);
+    if (isHexColor(text)) rootStyle.setProperty("--node-text", text);
+    updateNodeAccentStyles();
+  }
+
+  function updateNodeAccentStyles() {
+    d3.selectAll(".node path")
+      .attr("fill", CARD_ACCENT_ENABLED ? "var(--node-accent)" : "transparent");
+  }
+
+  function initCardThemeControls() {
+    const fillInput = document.getElementById("cardFillInput");
+    const strokeInput = document.getElementById("cardStrokeInput");
+    const accentInput = document.getElementById("cardAccentInput");
+    const textInput = document.getElementById("cardTextInput");
+    const accentToggleInput = document.getElementById("cardAccentToggleInput");
+    const resetBtn = document.getElementById("resetCardColorsBtn");
+    if (!fillInput || !strokeInput || !accentInput || !textInput || !accentToggleInput || !resetBtn) return;
+
+    const applyFromInputs = () => {
+      applyCardTheme({
+        fill: fillInput.value,
+        stroke: strokeInput.value,
+        accent: accentInput.value,
+        text: textInput.value
+      });
+    };
+
+    fillInput.addEventListener("input", applyFromInputs);
+    strokeInput.addEventListener("input", applyFromInputs);
+    accentInput.addEventListener("input", applyFromInputs);
+    textInput.addEventListener("input", applyFromInputs);
+    accentToggleInput.addEventListener("change", () => {
+      CARD_ACCENT_ENABLED = accentToggleInput.checked;
+      updateNodeAccentStyles();
+    });
+
+    resetBtn.addEventListener("click", () => {
+      fillInput.value = DEFAULT_CARD_THEME.fill;
+      strokeInput.value = DEFAULT_CARD_THEME.stroke;
+      accentInput.value = DEFAULT_CARD_THEME.accent;
+      textInput.value = DEFAULT_CARD_THEME.text;
+      accentToggleInput.checked = true;
+      CARD_ACCENT_ENABLED = true;
+      applyCardTheme(DEFAULT_CARD_THEME);
+    });
+
+    CARD_ACCENT_ENABLED = accentToggleInput.checked;
+    applyCardTheme({
+      fill: fillInput.value || DEFAULT_CARD_THEME.fill,
+      stroke: strokeInput.value || DEFAULT_CARD_THEME.stroke,
+      accent: accentInput.value || DEFAULT_CARD_THEME.accent,
+      text: textInput.value || DEFAULT_CARD_THEME.text
+    });
+  }
 
   // ======= CSV -> TREE =======
   function detectDelimiter(text) {
@@ -617,6 +845,8 @@ ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
   function render(root) {
     const svg = d3.select("#svg");
     svg.selectAll("*").remove();
+    svg.on(".zoom", null);
+    svg.classed("zoomable", true);
 
     const nodes = root.descendants();
 
@@ -630,7 +860,11 @@ ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
 
     svg.attr("viewBox", `0 0 ${width} ${height}`);
 
-    const g = svg.append("g")
+    const zoomViewport = svg.append("g")
+      .attr("class", "zoom-viewport");
+
+    const g = zoomViewport.append("g")
+      .attr("class", "chart-root")
       .attr("transform", `translate(${MARGIN.left - minX},${MARGIN.top - minY})`);
 
     // SPINES
@@ -642,6 +876,7 @@ ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
       .attr("class", "spine")
       .attr("stroke", "#333")
       .attr("stroke-width", 1.2)
+      .attr("stroke-opacity", 1)
       .attr("x1", d => d.x)
       .attr("x2", d => d.x)
       .attr("y1", d => d.y0)
@@ -688,6 +923,7 @@ ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
       .attr("fill", "none")
       .attr("stroke", "#333")
       .attr("stroke-width", 1.2)
+      .attr("stroke-opacity", 1)
       .attr("d", d => d.target._isVertical ? elbowSpine(d) : elbowNormal(d));
 
     // NODES
@@ -713,8 +949,8 @@ ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
     }
 
     node.append("rect")
-      .attr("fill", "#ececec")
-      .attr("stroke", "#d4d6da")
+      .attr("fill", "var(--node-fill)")
+      .attr("stroke", "var(--node-stroke)")
       .attr("stroke-width", 1)
       .attr("rx", 8)
       .attr("ry", 8)
@@ -722,7 +958,7 @@ ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
       .attr("height", NODE_H);
 
     node.append("path")
-      .attr("fill", "#0d3a6e")
+      .attr("fill", "var(--node-accent)")
       .attr("d", leftAccentPath(ACCENT_W, NODE_H, 8));
 
     function wrapText(text, maxCharsPerLine, maxLines) {
@@ -771,7 +1007,7 @@ ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
 
       const text = group.append("text")
         .attr("font-family", "system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif")
-        .attr("fill", "#1f2937")
+        .attr("fill", "var(--node-text)")
         .attr("text-anchor", "middle")
         .attr("dominant-baseline", "middle")
         .attr("font-size", fontSize)
@@ -799,6 +1035,18 @@ ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
         const r = d.data;
         return `ID: ${r.id}\nNombre: ${r.name}\nTitulo: ${r.label}\nRol: ${r.role}\nParent: ${r.parent || "-"}`;
       });
+
+    const zoom = d3.zoom()
+      .scaleExtent(ZOOM_EXTENT)
+      .on("zoom", (event) => {
+        zoomViewport.attr("transform", event.transform);
+        CURRENT_ZOOM_TRANSFORM = event.transform;
+      });
+
+    CURRENT_ZOOM_BEHAVIOR = zoom;
+    svg.call(zoom);
+    svg.on("dblclick.zoom", null);
+    svg.call(zoom.transform, CURRENT_ZOOM_TRANSFORM || d3.zoomIdentity);
   }
 
   function buildAndRender() {
@@ -807,6 +1055,7 @@ ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
       const root = buildHierarchy(rows);
       layoutMixed(root);
       render(root);
+      updateNodeAccentStyles();
       window.__lastRoot = root;
     } catch (e) {
       alert(e.message);
@@ -814,7 +1063,15 @@ ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
     }
   }
 
+  function resetView() {
+    if (!CURRENT_ZOOM_BEHAVIOR) return;
+    const svg = d3.select("#svg");
+    CURRENT_ZOOM_TRANSFORM = d3.zoomIdentity;
+    svg.transition().duration(220).call(CURRENT_ZOOM_BEHAVIOR.transform, CURRENT_ZOOM_TRANSFORM);
+  }
+
   document.getElementById("renderBtn").addEventListener("click", buildAndRender);
+  document.getElementById("resetViewBtn").addEventListener("click", () => resetView());
   document.getElementById("animateBtn").addEventListener("click", () => animateTraversal());
   document.getElementById("stopBtn").addEventListener("click", () => stopAnimation());
   document.getElementById("applyDepthBtn").addEventListener("click", () => {
@@ -828,6 +1085,31 @@ ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
   function makeStandaloneSvg() {
     const svgEl = document.getElementById("svg");
     const clone = svgEl.cloneNode(true);
+    const zoomLayerClone = clone.querySelector(".zoom-viewport");
+    if (zoomLayerClone) {
+      zoomLayerClone.setAttribute("transform", "translate(0,0) scale(1)");
+    }
+
+    function copyComputedStyleBySelector(selector, props) {
+      const srcEls = svgEl.querySelectorAll(selector);
+      const dstEls = clone.querySelectorAll(selector);
+      const len = Math.min(srcEls.length, dstEls.length);
+      for (let i = 0; i < len; i++) {
+        const computed = getComputedStyle(srcEls[i]);
+        for (const prop of props) {
+          const value = computed.getPropertyValue(prop);
+          if (value) dstEls[i].style.setProperty(prop, value.trim());
+        }
+      }
+    }
+
+    // Incrusta estilos computados para que exporte exactamente lo visible (incluye colores custom).
+    copyComputedStyleBySelector(".node rect", ["fill", "stroke", "stroke-width"]);
+    copyComputedStyleBySelector(".node path", ["fill"]);
+    copyComputedStyleBySelector(".node text", ["fill", "font-family", "font-size", "font-weight"]);
+    copyComputedStyleBySelector(".link", ["fill", "stroke", "stroke-width"]);
+    copyComputedStyleBySelector(".spine", ["stroke", "stroke-width"]);
+
     clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
     clone.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
     clone.setAttribute("version", "1.1");
@@ -924,6 +1206,7 @@ ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
 
   document.getElementById("downloadSvgBtn").addEventListener("click", downloadSvg);
 
+  initCardThemeControls();
   buildAndRender();
 
   // ======= DIDACTIC ANIMATION =======
