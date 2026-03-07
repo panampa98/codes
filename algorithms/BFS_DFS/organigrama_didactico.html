@@ -812,12 +812,16 @@ ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
 
   // ======= LAYOUT MIXTO + SPINE =======
   function layoutMixed(root) {
+    // Preorden DFS clasico: nodo -> hijos.
+    // Se usa para ubicar verticalmente cada subarbol completo antes del siguiente hermano.
     function collectPreorder(node, out = []) {
       out.push(node);
       for (const c of (node.children || [])) collectPreorder(c, out);
       return out;
     }
 
+    // 1) Se calcula el layout "horizontal" (tipo arbol) solo hasta HORIZONTAL_MAX_DEPTH.
+    // Ese nivel define el corte BFS visible en horizontal.
     const tree = d3.tree().nodeSize([NODE_W + H_GAP, NODE_H + DEPTH_GAP]);
     const horizontalRoot = root.copy();
     horizontalRoot.each(n => {
@@ -841,6 +845,8 @@ ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
 
     root._spineSegments = [];
 
+    // 2) Los nodos en la frontera BFS son "anclas":
+    // sus descendientes se dibujan como bloque vertical (fase DFS).
     const anchors = root.descendants().filter(n => n.depth === HORIZONTAL_MAX_DEPTH);
 
     for (const a of anchors) {
@@ -849,7 +855,7 @@ ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
 
       let cursorY = a.y + DEPTH_GAP;
 
-      // Mantiene orden DFS real del subarbol para preservar padre-hijo en vertical.
+      // 3) Orden DFS real del subarbol para preservar relacion padre-hijo.
       for (const child of anchorChildren) {
         const subtreeNodes = collectPreorder(child);
 
@@ -865,7 +871,7 @@ ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
           cursorY += V_GAP;
         }
 
-        // Dibuja espinas solo entre hermanos con el mismo padre (evita unir ramas distintas).
+        // 4) Espinas solo entre hermanos del mismo padre para no mezclar ramas.
         for (const p of subtreeNodes) {
           const kids = (p.children || []).filter(k => k._isVertical);
           if (kids.length <= 1) continue;
@@ -1264,6 +1270,13 @@ ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
     setStatus("Estado: detenido");
   }
 
+  /**
+   * Genera el orden de visita didactico:
+   * 1) BFS desde raiz hasta depth <= HORIZONTAL_MAX_DEPTH.
+   * 2) DFS para los subarboles que quedaron fuera del corte horizontal.
+   *
+   * Resultado: se ve primero el barrido por niveles y luego la profundizacion.
+   */
   function getVisitOrder(root) {
     if (!root) return [];
 
@@ -1280,7 +1293,8 @@ ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
       }
     }
 
-    // DFS from anchors' children (depth == HORIZONTAL_MAX_DEPTH), in natural order
+    // DFS recursivo desde los hijos de cada ancla del corte BFS.
+    // Esto visita completo cada subarbol antes de pasar al siguiente.
     const anchors = root.descendants().filter(n => n.depth === HORIZONTAL_MAX_DEPTH);
     const dfs = (n) => {
       order.push(n);
@@ -1290,7 +1304,8 @@ ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
       for (const c of (a.children || [])) dfs(c);
     }
 
-    // Remove duplicates while preserving order (BFS may include anchors)
+    // Elimina duplicados manteniendo el orden.
+    // Puede haber solape entre lo agregado en BFS y en DFS.
     const seen = new Set();
     const uniq = [];
     for (const n of order) {
@@ -1320,6 +1335,8 @@ ID47;ID21;Valentina Ruiz Chavez;Analista De Datos Jr.</textarea>
     const order = getVisitOrder(root);
     const speed = Math.max(100, Number(document.getElementById("speedInput").value) || 300);
 
+    // Fase 1: nodos con depth <= HORIZONTAL_MAX_DEPTH se etiquetan como BFS.
+    // Fase 2: el resto del recorrido (profundizacion) se etiqueta como DFS.
     setStatus(`Estado: BFS niveles 0..${HORIZONTAL_MAX_DEPTH}, luego DFS`);
 
     for (const n of order) {
