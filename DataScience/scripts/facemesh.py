@@ -1,10 +1,12 @@
 import tkinter as tk
+from tkinter import messagebox
 from PIL import Image, ImageTk
 import cv2
 import mediapipe as mp
 import imutils
 import customtkinter as ctk
 import numpy as np
+import platform
 
 ctk.set_appearance_mode('dark')
 ctk.set_default_color_theme('dark-blue')
@@ -66,7 +68,22 @@ class FaceMeshApp:
         self.range_label = ctk.CTkLabel(root, text="Rango: 0 - 467")
 
         # Cámara
-        self.cap = cv2.VideoCapture(1, cv2.CAP_DSHOW)
+        system_name = platform.system()
+        if system_name == 'Windows':
+            self.cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+            if not self.cap.isOpened():
+                self.cap = cv2.VideoCapture(1, cv2.CAP_DSHOW)
+        elif system_name == 'Darwin':
+            self.cap = cv2.VideoCapture(0, cv2.CAP_AVFOUNDATION)
+        else:
+            self.cap = cv2.VideoCapture(0)
+
+        if not self.cap or not self.cap.isOpened():
+            raise RuntimeError(
+                'No se pudo abrir la camara. En macOS habilita permisos para tu terminal en '
+                'System Settings > Privacy & Security > Camera y vuelve a ejecutar.'
+            )
+
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
         self.cap.set(cv2.CAP_PROP_FPS, 30)
@@ -163,5 +180,10 @@ class FaceMeshApp:
 
 if __name__ == '__main__':
     root = ctk.CTk()
-    app = FaceMeshApp(root)
+    try:
+        app = FaceMeshApp(root)
+    except RuntimeError as exc:
+        messagebox.showerror('Camera Error', str(exc))
+        root.destroy()
+        raise SystemExit(1)
     root.mainloop()
